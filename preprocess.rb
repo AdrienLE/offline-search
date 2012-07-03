@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 
 class Trie
-  def initialize
+  def initialize depth=0
     @subs = [nil] * 26
     @all_ids = []
+    @depth = depth
   end
   
   def insert word, id, idx
@@ -11,20 +12,19 @@ class Trie
       @all_ids << id
     else
       chr = word[idx].ord - 'a'.ord
-      @subs[chr] = Trie.new unless @subs[chr]
+      @subs[chr] = Trie.new(idx + 1) unless @subs[chr]
       @subs[chr].insert(word, id, idx + 1)
     end
   end
 
   def serialize file
-    idx_table = [-1] * 26
+    idx_table = [(1 << 32) - 1] * 26
     @subs.each_with_index do |trie,i|
       next unless trie
-      idx_table[i] = file.tell
-      trie.serialize file
+      idx_table[i] = trie.serialize file
     end
     this_pos = file.tell
-    file.write "#{idx_table.pack('C*')}#{[@all_ids.length].pack('l<')}#{@all_ids.pack('l<*')}"
+    file.write "#{[@depth].pack('l<')}#{idx_table.pack('l<*')}#{[@all_ids.length].pack('l<')}#{@all_ids.pack('l<*')}"
     this_pos
   end
 end
@@ -32,11 +32,14 @@ end
 def process_file path, full_id, id_table, trie
   small_id = id_table.length
   id_table << full_id
-  puts full_id
-  File.read(path).split(/b/).each do |word|
+#  puts full_id
+  File.read(path).split(/\W+/).each do |word|
     word.downcase!
-    word.gsub! /[^a-z]/, ""
+    word.gsub! /[^a-z]+/, ""
     next if word.empty?
+    if word == 'but'
+      puts full_id
+    end
     trie.insert word, small_id, 0
   end
 end
@@ -61,7 +64,7 @@ ROOT_DIR = "maildir"
 rec_fill_table(ROOT_DIR, "", id_table, trie)
 
 File.open("full_ids", "w") do |f|
-  f.write id_table.join('\n')
+  f.write id_table.join("\n")
 end
 
 File.open("trie", "w") do |f|
