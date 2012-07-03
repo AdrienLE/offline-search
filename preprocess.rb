@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 
 class Trie
-  def initialize depth=0
+  def initialize
     @subs = [nil] * 26
     @all_ids = []
-    @depth = depth
   end
   
   def insert word, id, idx
@@ -12,7 +11,7 @@ class Trie
       @all_ids << id
     else
       chr = word[idx].ord - 'a'.ord
-      @subs[chr] = Trie.new(idx + 1) unless @subs[chr]
+      @subs[chr] = Trie.new unless @subs[chr]
       @subs[chr].insert(word, id, idx + 1)
     end
   end
@@ -24,7 +23,7 @@ class Trie
       idx_table[i] = trie.serialize file
     end
     this_pos = file.tell
-    file.write "#{[@depth].pack('l<')}#{idx_table.pack('l<*')}#{[@all_ids.length].pack('l<')}#{@all_ids.pack('l<*')}"
+    file.write "#{idx_table.pack('l<*')}#{[@all_ids.length].pack('l<')}#{@all_ids.pack('l<*')}"
     this_pos
   end
 end

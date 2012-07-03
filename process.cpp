@@ -16,14 +16,12 @@ class Trie
   vector<unsigned int> ids;
   unsigned int position;
   fstream &f;
-  int depth;
 
 public:
   static Trie *from_offset(fstream &file, unsigned int offset)
   {
     Trie *t = new Trie(file);
     file.seekg(offset);
-    file.read((char*)&t->depth, sizeof(depth));
     file.read((char*)t->offsets, 26 * sizeof(*t->offsets));
     t->position = file.tellg();
   }
@@ -38,7 +36,6 @@ public:
     if (offsets[idx] == UINT_MAX)
       return NULL;
     Trie *res = Trie::from_offset(f, offsets[idx]);
-    assert(res->depth == depth + 1);
     return res;
   }
 
