@@ -10,6 +10,9 @@
 
 using namespace std;
 
+// This is terribly ugly
+bool is_prefix_search = false;
+
 class Trie
 {
   unsigned int offsets[26];
@@ -59,6 +62,16 @@ public:
 	    else
 	      elems.insert(indexes[i]);
 	  }
+	if (is_prefix_search)
+	  {
+	    for (int i = 0; i < 26; ++i)
+	      {
+		Trie *nxt = next('a' + i);
+		if (nxt)
+		  nxt->find(token, elems, union_checker, idx);
+		delete nxt;
+	      }
+	  }
       }
     else
       {
@@ -76,8 +89,10 @@ public:
   }
 };
 
-int main()
+int main(int ac, char **av)
 {
+  if (ac >= 2 && string(av[1]) == "--prefix")
+    is_prefix_search = true;
   ifstream sids("full_ids");
   vector<string> ids;
   while (sids)
