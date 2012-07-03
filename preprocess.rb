@@ -32,11 +32,14 @@ def process_file path, full_id, id_table, trie
   puts full_id
   small_id = id_table.length
   id_table << full_id
-  File.read(path).split(/\W+/).each do |word|
-    word.downcase!
-    word.gsub! /[^a-z]+/, ""
-    next if word.empty?
-    trie.insert word, small_id, 0
+  begin
+    split_items = File.read(path).split(/\W+/).each do |word|
+      word.downcase!
+      word.gsub! /[^a-z]+/, ""
+      next if word.empty?
+      trie.insert word, small_id, 0
+    end
+  rescue ArgumentError
   end
 end
 
